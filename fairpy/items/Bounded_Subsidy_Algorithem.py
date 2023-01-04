@@ -17,11 +17,29 @@ from typing import *
 from fairpy import AgentList
 from fairpy.items.utilitarian_matching import instance_to_graph, matching_to_allocation
 from fairpy import AdditiveAgent
+import matplotlib.pyplot as plt
+import time
+import functools
+import numpy as np
+
+
+
 
 import logging
 logger = logging.getLogger(__name__)
 
+def timer(func):
+    @functools.wraps(func)
+    def wrapper_timer(*args, **kwargs):
+        tic = time.perf_counter()
+        value = func(*args, **kwargs)
+        toc = time.perf_counter()
+        elapsed_time = toc - tic
+        print(f"Elapsed time: {elapsed_time:0.4f} seconds")
+        return value
+    return wrapper_timer
 
+@timer
 def Bounded_Subsidy(agents: AgentList, items: Dict[str,int]=None, weights: Dict[str, int]=None):
     """
     The algorithm getting a list of agents, list of goods and array of the weights of the goods
@@ -69,6 +87,10 @@ def Bounded_Subsidy(agents: AgentList, items: Dict[str,int]=None, weights: Dict[
     >>> agents5 = AgentList({"Alice": {"a":3, "b":2}, "Bob": {"a":4, "b":1}})
     >>> print(Bounded_Subsidy(agents5))
     {'Alice': ['b'], 'Bob': ['a']}
+
+    >>> agents6 = AgentList([[3,2],[4,1]])
+    >>> print(Bounded_Subsidy(agents6))
+    {'Agent #0': [1], 'Agent #1': [0]}
 
     """
     assert isinstance(agents, AgentList)
@@ -196,14 +218,14 @@ def delete_items(items:Dict[str,int], items_to_remove:List)->Dict[str,int]:
     """
     # This is help function that Remove the given items from the graph
 
-    >>> stringify(delete_items({"a":4, "b":10, "c":8, "d":7}, ["a","b","d"]))
-    '{a:3, b:9, c:8, d:6}'
+    >>> print(delete_items({"a":4, "b":10, "c":8, "d":7}, ["a","b","d"]))
+    {'a': 3, 'b': 9, 'c': 8, 'd': 6}
 
-    >>> stringify(delete_items({"a":9, "b":2, "c":4, "d":7, "e":10, "f":0}, ["b","c"]))
-    '{a:9, b:1, c:3, d:7, e:10}'
+    >>> print(delete_items({"a":9, "b":2, "c":4, "d":7, "e":10, "f":0}, ["b","c"]))
+    {'a': 9, 'b': 1, 'c': 3, 'd': 7, 'e': 10}
 
-    >>> stringify(delete_items({"a":1, "b":2, "c":1}, ["a", "b", "c"]))
-    '{b:1}'
+    >>> print(delete_items({"a":1, "b":2, "c":1}, ["a", "b", "c"]))
+    {'b': 1}
     """
     for i in items_to_remove:
         items[i] -= 1
@@ -215,15 +237,24 @@ def delete_items(items:Dict[str,int], items_to_remove:List)->Dict[str,int]:
 #### MAIN
 
 if __name__ == "__main__":
-    # import sys
+    import sys
     # logger.addHandler(logging.StreamHandler(sys.stdout))
     # logger.setLevel(logging.INFO)
     (failures, tests) = doctest.testmod(report=True,optionflags=doctest.NORMALIZE_WHITESPACE)
     print("{} failures, {} tests".format(failures, tests))
-    # agents4 = AgentList({"Alice": {"a":3, "b":5}, "Bob": {"a":6, "b":7}})
-    # agents1 = AgentList({"Alice": {"a":4, "b":10, "c":8, "d":7}, "Bob": {"a":5, "b":9, "c":5, "d":10}})
-    # agents5 = AgentList({"Alice": {"a":3, "b":2}, "Bob": {"a":4, "b":1}})
-    # agents2 = AgentList({"Alice": {"a":10, "b":8, "c":5, "d":9, "e":3, "f":0}, "Bob": {"a":9, "b":2, "c":4, "d":7, "e":10, "f":1}})
+    agents1 = AgentList({"Alice": {"a":3, "b":5}, "Bob": {"a":6, "b":7}})
+    agents2 = AgentList({"Alice": {"a":4, "b":10, "c":8, "d":7}, "Bob": {"a":5, "b":9, "c":5, "d":10}})
+    agents3 = AgentList({"Alice": {"a":3, "b":2}, "Bob": {"a":4, "b":1}})
+    agents4 = AgentList({"Alice": {"a":10, "b":8, "c":5, "d":9, "e":3, "f":0}, "Bob": {"a":9, "b":2, "c":4, "d":7, "e":10, "f":1}})
 
-    # Bounded_Subsidy(agents1)
-    # allocate_items_with_Subsidy(agents2)
+    tic = time.perf_counter()
+    res = Bounded_Subsidy(agents1)
+    toc = time.perf_counter()
+    print(f"run the algo in {toc - tic:0.4f} seconds")
+    print(res)
+
+    t = time()
+    start = time.time()
+    allocate_items_with_Subsidy(agents2)
+    end = time.time()
+    print(f'end - start')
